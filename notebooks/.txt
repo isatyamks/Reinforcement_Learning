@@ -1,0 +1,233 @@
+This program implements a **Reinforcement Learning (RL)** algorithm to train an agent to balance a pole on a cart using the `CartPole-v1` environment from the `gymnasium` library. Below is a detailed explanation of each section of the code:
+
+---
+
+### **1. Importing Libraries**
+```python
+import gymnasium as gym
+import numpy as np
+import matplotlib.pyplot as plt
+import pickle
+```
+- **`gymnasium as gym`**: Provides the `CartPole-v1` environment and RL framework.
+- **`numpy as np`**: Useful for numerical operations, including array manipulations and digitizing states.
+- **`matplotlib.pyplot as plt`**: For plotting rewards over episodes.
+- **`pickle`**: For saving and loading the Q-table, which is a key component of the Q-learning algorithm.
+
+---
+
+### **2. Defining the `run` Function**
+```python
+def run(is_training=True, render=False):
+```
+- **`is_training`**: A flag to determine if the agent is training (`True`) or running in testing mode (`False`).
+- **`render`**: When `True`, visualizes the environment for testing.
+
+---
+
+### **3. Environment Setup**
+```python
+env = gym.make('CartPole-v1', render_mode='human' if render else None)
+```
+- Creates the `CartPole-v1` environment. If `render` is `True`, the environment is rendered visually for observation; otherwise, it runs in the background.
+
+---
+
+### **4. Discretizing State Space**
+```python
+pos_space = np.linspace(-2.4, 2.4, 10)
+vel_space = np.linspace(-4, 4, 10)
+ang_space = np.linspace(-.2095, .2095, 10)
+ang_vel_space = np.linspace(-4, 4, 10)
+```
+- The environment's state is continuous (real numbers), but Q-learning requires discrete states.
+- **`np.linspace(start, stop, num)`** divides a range into `num` equal intervals.
+- Discretization helps map continuous states into discrete bins:
+  - `pos_space`: Position of the cart.
+  - `vel_space`: Velocity of the cart.
+  - `ang_space`: Angle of the pole.
+  - `ang_vel_space`: Angular velocity of the pole.
+
+---
+
+### **5. Initializing Q-Table**
+```python
+if(is_training):
+    q = np.zeros((len(pos_space)+1, len(vel_space)+1, len(ang_space)+1, len(ang_vel_space)+1, env.action_space.n))
+else:
+    f = open('cartpole.pkl', 'rb')
+    q = pickle.load(f)
+    f.close()
+```
+- **Training Mode (`is_training=True`)**:
+  - Creates a 5-dimensional Q-table with all values initialized to zero. Dimensions represent:
+    1. Discretized cart position.
+    2. Discretized cart velocity.
+    3. Discretized pole angle.
+    4. Discretized angular velocity.
+    5. Possible actions (2 actions: `0` = left, `1` = right).
+- **Testing Mode (`is_training=False`)**:
+  - Loads the pre-trained Q-table from a file (`cartpole.pkl`) using `pickle`.
+
+---
+
+### **6. Hyperparameters and Variables**
+```python
+learning_rate_a = 0.1
+discount_factor_g = 0.99
+epsilon = 1
+epsilon_decay_rate = 0.00001
+rng = np.random.default_rng()
+rewards_per_episode = []
+i = 0
+```
+- **`learning_rate_a`**: Rate at which the Q-values are updated.
+- **`discount_factor_g`**: How much future rewards are valued compared to immediate rewards.
+- **`epsilon`**: Exploration rate for the epsilon-greedy policy.
+- **`epsilon_decay_rate`**: How quickly `epsilon` decreases over time.
+- **`rng`**: Random number generator for consistent randomness.
+- **`rewards_per_episode`**: Stores rewards for each episode.
+- **`i`**: Tracks the number of episodes.
+
+---
+
+### **7. Main Training/Testing Loop**
+```python
+while(True):
+```
+Runs indefinitely until a stopping condition (e.g., achieving the goal or reaching a performance threshold).
+
+#### **7.1 Resetting Environment**
+```python
+state = env.reset()[0]
+state_p = np.digitize(state[0], pos_space)
+state_v = np.digitize(state[1], vel_space)
+state_a = np.digitize(state[2], ang_space)
+state_av = np.digitize(state[3], ang_vel_space)
+```
+- Resets the environment and gets the initial state.
+- **`np.digitize(value, bins)`** assigns the state variables (position, velocity, etc.) to discrete bins.
+
+---
+
+#### **7.2 Episode Loop**
+```python
+terminated = False
+rewards = 0
+while(not terminated and rewards < 10000):
+```
+- **`terminated`**: Becomes `True` if the pole falls or the episode ends.
+- **`rewards`**: Tracks cumulative rewards for the current episode.
+
+---
+
+#### **7.3 Epsilon-Greedy Action Selection**
+```python
+if is_training and rng.random() < epsilon:
+    action = env.action_space.sample()
+else:
+    action = np.argmax(q[state_p, state_v, state_a, state_av, :])
+```
+- **Exploration**: With probability `epsilon`, the agent chooses a random action.
+- **Exploitation**: Otherwise, it selects the action with the highest Q-value.
+
+---
+
+#### **7.4 Taking the Action**
+```python
+new_state, reward, terminated, _, _ = env.step(action)
+```
+- **`env.step(action)`**: Executes the action and returns:
+  1. `new_state`: Next state.
+  2. `reward`: Reward for the action.
+  3. `terminated`: Whether the episode ended.
+  4. Unused metadata `_`.
+
+---
+
+#### **7.5 Updating Q-Table**
+```python
+q[state_p, state_v, state_a, state_av, action] = q[state_p, state_v, state_a, state_av, action] + \
+    learning_rate_a * (reward + discount_factor_g * np.max(q[new_state_p, new_state_v, new_state_a, new_state_av, :]) - q[state_p, state_v, state_a, state_av, action])
+```
+- **Q-value update**: 
+  - Combines current Q-value, immediate reward, and estimated future reward (using the Bellman equation).
+
+---
+
+#### **7.6 Updating State and Rewards**
+```python
+state = new_state
+state_p = new_state_p
+state_v = new_state_v
+state_a = new_state_a
+state_av = new_state_av
+rewards = reward + rewards
+```
+- Moves to the next state and accumulates rewards.
+
+---
+
+### **8. Episode Tracking**
+```python
+rewards_per_episode.append(rewards)
+mean_rewards = np.mean(rewards_per_episode[len(rewards_per_episode)-100:])
+```
+- Tracks rewards for each episode.
+- Calculates the average rewards over the last 100 episodes.
+
+---
+
+### **9. Stopping Criteria**
+```python
+if mean_rewards > 1000:
+    break
+```
+- Ends training if the agent achieves an average reward of 1000 over the last 100 episodes.
+
+---
+
+### **10. Epsilon Decay**
+```python
+epsilon = max(epsilon - epsilon_decay_rate, 0)
+```
+- Gradually reduces exploration over time.
+
+---
+
+### **11. Saving Q-Table**
+```python
+if is_training:
+    f = open('cartpole.pkl', 'wb')
+    pickle.dump(q, f)
+    f.close()
+```
+- Saves the trained Q-table for later use.
+
+---
+
+### **12. Plotting Rewards**
+```python
+plt.plot(rewards_per_episode)
+plt.xlabel('Episode')
+plt.ylabel('Rewards')
+plt.title('Rewards per Episode')
+plt.savefig('cartpole_rewards.png')
+```
+- Visualizes the learning progress over episodes.
+
+---
+
+### **13. Running the Function**
+```python
+if __name__ == '__main__':
+    # run(is_training=True, render=False)
+    run(is_training=False, render=True)
+```
+- Uncomment the desired mode:
+  - **Training Mode**: `is_training=True, render=False`.
+  - **Testing Mode**: `is_training=False, render=True`.
+
+--- 
+
+This program demonstrates **Q-learning**, an off-policy RL algorithm, to balance a pole.
