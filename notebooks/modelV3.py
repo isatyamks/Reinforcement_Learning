@@ -6,10 +6,8 @@ import pickle
 def run(is_training=True, render=False):
 
     env = gym.make('CartPole-v1', render_mode='human' if render else None)
-
-    # Divide position, velocity, pole angle, and pole angular velocity into segments
     pos_space = np.linspace(-2.4, 2.4, 10)
-    vel_space = np.linspace(-4, 4, 10)
+    vel_space = np.linspace(-3, 10, 10)
     ang_space = np.linspace(-.2095, .2095, 10)
     ang_vel_space = np.linspace(-4, 4, 10)
 
@@ -20,21 +18,17 @@ def run(is_training=True, render=False):
         q = pickle.load(f)
         f.close()
 
-    learning_rate_a = 0.1 # alpha or learning rate
-    discount_factor_g = 0.99 # gamma or discount factor.
-
-    epsilon = 1         # 1 = 100% random actions
-    epsilon_decay_rate = 0.00001 # epsilon decay rate
-    rng = np.random.default_rng()   # random number generator
-
+    learning_rate_a = 0.1 
+    discount_factor_g = 0.99 
+    epsilon = 1         
+    epsilon_decay_rate = 0.00001
+    rng = np.random.default_rng()
     rewards_per_episode = []
-
     i = 0
 
-    # for i in range(episodes):
     while(True):
 
-        state = env.reset()[0]      # Starting position, starting velocity always 0
+        state = env.reset()[0]      
         state_p = np.digitize(state[0], pos_space)
         state_v = np.digitize(state[1], vel_space)
         state_a = np.digitize(state[2], ang_space)
@@ -47,7 +41,6 @@ def run(is_training=True, render=False):
         while(not terminated and rewards < 10000):
 
             if is_training and rng.random() < epsilon:
-                # Choose random action  (0=go left, 1=go right)
                 action = env.action_space.sample()
             else:
                 action = np.argmax(q[state_p, state_v, state_a, state_av, :])
@@ -68,16 +61,16 @@ def run(is_training=True, render=False):
             state_v = new_state_v
             state_a = new_state_a
             state_av= new_state_av
+            rewards = reward+rewards
 
-            rewards+=reward
 
-            if not is_training and rewards%100==0:
+            if not is_training:
                 print(f'Episode: {i}  Rewards: {rewards}')
 
         rewards_per_episode.append(rewards)
         mean_rewards = np.mean(rewards_per_episode[len(rewards_per_episode)-100:])
 
-        if is_training and i%100==0:
+        if is_training:
             print(f'Episode: {i} {rewards}  Epsilon: {epsilon:0.2f}  Mean Rewards {mean_rewards:0.1f}')
 
         if mean_rewards>1000:
@@ -91,17 +84,17 @@ def run(is_training=True, render=False):
 
     # Save Q table to file
     if is_training:
-        f = open('cartpole.pkl','wb')
+        f = open('cartpole.pkl', 'wb')
         pickle.dump(q, f)
         f.close()
 
-    mean_rewards = []
-    for t in range(i):
-        mean_rewards.append(np.mean(rewards_per_episode[max(0, t-100):(t+1)]))
-    plt.plot(mean_rewards)
-    plt.savefig(f'cartpole.png')
+    plt.plot(rewards_per_episode)
+    plt.xlabel('Episode')
+    plt.ylabel('Rewards')
+    plt.title('Rewards per Episode')
+    plt.savefig('cartpole_rewards.png')
 
 if __name__ == '__main__':
     # run(is_training=True, render=False)
 
-    run(is_training=True, render=True)
+    run(is_training=True, render=False)
