@@ -7,12 +7,12 @@ def run(is_training=True, render=False):
 
     env = gym.make('CartPole-v1', render_mode='human' if render else None)
     pos_space = np.linspace(-2.4, 2.4, 10)
-    vel_space = np.linspace(-3, 10, 10)
+    vel_space = np.linspace(-3, 3, 10)
     ang_space = np.linspace(-.2095, .2095, 10)
     ang_vel_space = np.linspace(-4, 4, 10)
 
     if(is_training):
-        q = np.zeros((len(pos_space)+1, len(vel_space)+1, len(ang_space)+1, len(ang_vel_space)+1, env.action_space.n)) # init a 11x11x11x11x2 array
+        q = np.zeros((len(pos_space)+1, len(vel_space)+1, len(ang_space)+1, len(ang_vel_space)+1, env.action_space.n)) 
     else:
         f = open('cartpole.pkl', 'rb')
         q = pickle.load(f)
@@ -97,4 +97,4 @@ def run(is_training=True, render=False):
 if __name__ == '__main__':
     # run(is_training=True, render=False)
 
-    run(is_training=True, render=False)
+    run(is_training=False, render=True)
