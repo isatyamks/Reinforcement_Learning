@@ -137,5 +137,5 @@ def run(is_training=True, render=False):
 
 if __name__ == '__main__':
     # run(is_training=True, render=False)
-
+    run(is_training = True,render = False)
     run(is_training=False, render=True)
