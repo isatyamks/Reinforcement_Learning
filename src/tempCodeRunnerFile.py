@@ -1,0 +1,1 @@
+line, = ax.plot([], [], 'b-', label='Mean Reward (per 100 episodes)')

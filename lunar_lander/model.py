@@ -4,7 +4,7 @@ import pickle
 from collections import defaultdict
 import argparse
 
-ne = 10000
+ne = 50000
 
 # --- Discretization Helper Functions ---
 def create_bins(low, high, num_bins):
@@ -85,12 +85,12 @@ def train_model(num_episodes=1000, alpha=0.1, gamma=0.99,
         rewards.append(total_reward)
         
         # Print mean reward every 100 episodes.
-        if (episode + 1) % 100 == 0:
+        if (episode + 1) % 500 == 0:
             mean_reward_100 = np.mean(rewards[-100:])
             print(f"Episode {episode+1}/{num_episodes}, Mean Reward (last 100 episodes): {mean_reward_100:.2f}")
         
         # Print mean reward every 200 episodes.
-        if (episode + 1) % 200 == 0:
+        if (episode + 1) % 1000 == 0:
             mean_reward_200 = np.mean(rewards[-200:])
             print(f"Episode {episode+1}/{num_episodes}, Mean Reward (last 200 episodes): {mean_reward_200:.2f}")
         

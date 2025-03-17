@@ -86,7 +86,9 @@ def train_model(Q=None, num_episodes=1000, alpha=0.1, gamma=0.99,
         if (episode + 1) % 200 == 0:
             mean_reward_200 = np.mean(rewards[-200:])
             print(f"Episode {episode+1}/{num_episodes}, Mean Reward (last 200 episodes): {mean_reward_200:.2f}")
-        
+        if (episode + 1) % 10000 == 0:
+            mean_reward_1000 = np.mean(rewards[-1000:])
+            print(f"Episode {episode+1}/{num_episodes}, Mean Reward (last 1000 episodes): {mean_reward_1000:.2f}")
         # Decay the exploration rate.
         epsilon = max(epsilon_min, epsilon * epsilon_decay)
     
