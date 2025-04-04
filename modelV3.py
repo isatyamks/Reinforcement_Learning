@@ -14,11 +14,11 @@ def run(is_training=True, render=False):
     if(is_training):
         q = np.zeros((len(pos_space)+1, len(vel_space)+1, len(ang_space)+1, len(ang_vel_space)+1, env.action_space.n)) 
     else:
-        f = open('cartpole.pkl', 'rb')
+        f = open('cartpole1.pkl', 'rb')
         q = pickle.load(f)
         f.close()
 
-    learning_rate_a = 0.1 
+    learning_rate_a = 0.01 
     discount_factor_g = 0.99 
     epsilon = 1         
     epsilon_decay_rate = 0.00001
