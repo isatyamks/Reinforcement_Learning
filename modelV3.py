@@ -87,7 +87,7 @@ def run(is_training=True, render=False):
         pickle.dump(q, f)
         f.close()
 
-    plt.plot(rewards_per_episode)
+    plt.plot(rew)
     plt.xlabel('Episode')
     plt.ylabel('Rewards')
     plt.title('Rewards per Episode')
