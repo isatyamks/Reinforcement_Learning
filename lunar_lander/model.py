@@ -4,17 +4,13 @@ import pickle
 from collections import defaultdict
 import argparse
 
-ne = 50000
-
-# --- Discretization Helper Functions ---
+ne = 100000
 def create_bins(low, high, num_bins):
     """
     Create equally spaced bins for discretization.
     """
     return np.linspace(low, high, num_bins - 1)
 
-# Define bins for the first 6 continuous state variables.
-# LunarLander-v2 observation: [x_position, y_position, x_velocity, y_velocity, angle, angular_velocity, left_contact, right_contact]
 bins = [
     create_bins(-1.0, 1.0, 10),     # x position
     create_bins(0.0, 1.5, 10),      # y position
@@ -38,8 +34,6 @@ def discretize_state(state):
     discrete_state.append(int(state[7]))
     return tuple(discrete_state)
 
-# --- Q-Learning Agent Functions ---
-# Instead of a lambda (which is hard to pickle), we use a named function.
 def zero_q():
     return np.zeros(4)
 
@@ -105,7 +99,10 @@ def test_model(Q, num_episodes=10, render=True):
     Test the agent using the provided Q-table.
     """
     # Use render_mode="human" for visual testing.
-    env = gym.make('LunarLander-v3', render_mode="human")
+    # env = gym.make('LunarLander-v3', render_mode="human")
+    # env = gym.make('LunarLander-v2')
+    env = gym.make('LunarLander-v3', render_mode='human' if render else None)
+
     for episode in range(num_episodes):
         state, _ = env.reset()
         state_disc = discretize_state(state)
@@ -126,13 +123,13 @@ def test_model(Q, num_episodes=10, render=True):
 
 
 
-def save_model(Q, filename=f"q_table{ne}.pkl"):
+def save_model(Q, filename=f"q_tables{ne}.pkl"):
 
     with open(filename, 'wb') as f:
         pickle.dump(dict(Q), f)
     print(f"Model saved to {filename}")
 
-def load_model(filename=f"q_table{ne}.pkl"):
+def load_model(filename=f"q_tables{ne}.pkl"):
 
     with open(filename, 'rb') as f:
         Q_dict = pickle.load(f)

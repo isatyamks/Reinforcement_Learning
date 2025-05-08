@@ -77,33 +77,33 @@ def train_model(num_episodes=1000):
             print(f"Episode {episode}: Reward = {total_reward}, Mean Reward (last 100) = {mean_reward:.2f}")
 
         # Live plot update
-        ax.clear()
-        ax.set_title("Training Progress")
-        ax.set_xlabel("Episode")
-        ax.set_ylabel("Mean Reward (Last 100 Episodes)")
-        ax.plot(range(len(rewards)), rewards, label="Episode Reward", alpha=0.5)
-        ax.plot(range(len(rewards)), [np.mean(rewards[max(0, i-100):i+1]) for i in range(len(rewards))], label="Mean Reward (100)", color="red")
-        ax.legend()
-        plt.pause(0.01)
+        # ax.clear()
+        # ax.set_title("Training Progress")
+        # ax.set_xlabel("Episode")
+        # ax.set_ylabel("Mean Reward (Last 100 Episodes)")
+        # ax.plot(range(len(rewards)), rewards, label="Episode Reward", alpha=0.5)
+        # ax.plot(range(len(rewards)), [np.mean(rewards[max(0, i-100):i+1]) for i in range(len(rewards))], label="Mean Reward (100)", color="red")
+        # ax.legend()
+        # plt.pause(0.01)
 
         # Decay epsilon
         EPSILON = max(EPSILON * EPSILON_DECAY, EPSILON_MIN)
 
-    plt.ioff()
-    plt.show()
+    # plt.ioff()
+    # plt.show()
 
     print("\nTraining completed.")
     return Q
 
 
-def save_model(Q, filename="qq_table.pkl"):
+def save_model(Q, filename="q_table.pkl"):
     """Save the trained Q-table to a file."""
     with open(filename, "wb") as f:
         pickle.dump(Q, f)
     print("Model saved.")
 
 
-def load_model(filename="qq_table.pkl"):
+def load_model(filename="q_table.pkl"):
     """Load a trained Q-table from a file."""
     with open(filename, "rb") as f:
         return pickle.load(f)
